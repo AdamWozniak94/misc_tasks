@@ -20,25 +20,36 @@ Do przechowywania danych wystarczy prosty plik tekstowy na serwerze, proszę wyb
 Z powodu ogranicznonego czasu na wykonanie nie jest wymagane dopracowanie wyglądu strony, oraz wprowadzanie javascript.
 */
 
+// tworzy plik jeśli ten nie istnieje
 if (!file_exists('results.json')) {
     touch('results.json');
 }
 
+// dodaje nowy rekord o ile podano wartości 'kto' i 'godzina'
 if (!empty($_GET['kto']) && !empty($_GET['godzina'])) {
     $who = $_GET['kto'];
     $time = $_GET['godzina'];
+
+    // wczytanie danych z pliku
     $results = json_decode(file_get_contents('results.json'), true);
 
+    // dodanie / nadpisanie rekordu
     $results[$who] = $time;
     
+    // zapisanie wszystkich danych do pliku
     file_put_contents('results.json', json_encode($results));
 }
 
+// wczytanie danych z pliku
 $results = json_decode(file_get_contents('results.json'), true);
+
+// grupuje osoby wg godzin
 $groupedResults = [];
 foreach ($results as $name => $time) {
     $groupedResults[$time][] = $name;
 }
+
+// sortuje wpisy wg ilości osób
 array_multisort(array_map('count', $groupedResults), SORT_DESC, $groupedResults);
 
 ?>
@@ -47,6 +58,7 @@ array_multisort(array_map('count', $groupedResults), SORT_DESC, $groupedResults)
     <body>
         <div style="margin-top: 20px; margin-left: 10px;">
             <?php
+                // wypisywanie rekordów na ekran
                 foreach ($groupedResults as $groupedTime => $names) {
                     $count = count($names);
                     $peopleText = ($count > 1) ? ' osoby (' : ' osoba (';
